@@ -186,14 +186,13 @@ function finishRace(m,game,won,winnerIndex){const attempt=Math.max(1,initialTick
 function hideLoader(){const l=qs('#loadingScreen');if(!l)return;if(!state.theme.loadingScreen){l.remove();return}const text=l.querySelector('.muted');if(text)text.textContent=state.theme.loadingText||'Memuat...';setTimeout(()=>l.classList.add('hide'),250);setTimeout(()=>l.remove(),700)}
 /* ===== GOOGLE SHEETS REALTIME RACE HISTORY =====
    Setelah Code.gs dideploy, ganti URL di bawah dengan URL Web App /exec. */
-const GOOGLE_SHEETS_API_URL='https://script.google.com/macros/s/AKfycbwBIGr4zj-t_dKumwyLs6HWm8ZLIv2SYlpHzvN9L5Vszn-2tVc9T_qPk7xMox1042jU/exec';
-const RACE_API_URL=GOOGLE_SHEETS_API_URL;
-const RACE_API_TOKEN='';
+const RACE_API_URL='PASTE_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const RACE_API_TOKEN='GANTI_DENGAN_TOKEN_RAHASIA_YANG_SAMA';
 let remoteRaceHistory=[];
 function raceApiReady(){return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec/.test(RACE_API_URL)}
 async function raceApi(action,data={}){
   if(!raceApiReady())throw new Error('URL Google Apps Script belum dipasang.');
-  const url=new URL(RACE_API_URL);url.searchParams.set('action',action);if(RACE_API_TOKEN)url.searchParams.set('token',RACE_API_TOKEN);url.searchParams.set('_',Date.now());
+  const url=new URL(RACE_API_URL);url.searchParams.set('action',action);url.searchParams.set('token',RACE_API_TOKEN);url.searchParams.set('_',Date.now());
   Object.entries(data).forEach(([k,v])=>url.searchParams.set(k,String(v??'')));
   const res=await fetch(url.toString(),{method:'GET',redirect:'follow',cache:'no-store'});
   if(!res.ok)throw new Error('API Spreadsheet tidak dapat diakses.');
@@ -226,8 +225,8 @@ const BONUS_CATEGORIES=Object.freeze({
   coupon_combo:{label:'Coupon 4 – Saldo + Freechip Sportbook',unit:'Tiket',inputLabel:'Jumlah Tiket',icon:'⚽'}
 });
 const ADMIN2_ALLOWED_MENUS=new Set(['dashboard','members','tickets','activity','winners','account']);
-const SHARED_DATABASE_API_URL=GOOGLE_SHEETS_API_URL;
-const SHARED_DATABASE_API_TOKEN='';
+const SHARED_DATABASE_API_URL='PASTE_SHARED_DATABASE_API_URL_HERE';
+const SHARED_DATABASE_API_TOKEN='GANTI_DENGAN_TOKEN_SERVER';
 let remoteSyncTimer=null;
 let remoteSyncInFlight=false;
 
@@ -602,7 +601,7 @@ async function pushSharedDatabase(){
   remoteSyncInFlight=true;
   try{
     const res=await fetch(SHARED_DATABASE_API_URL,{
-      method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'savePlatformState',token:SHARED_DATABASE_API_TOKEN,...remoteOperationalPayload()})
     });
     if(!res.ok)throw new Error('Server database menolak penyimpanan.');
@@ -618,7 +617,7 @@ async function pullSharedDatabase(){
   if(!sharedDatabaseReady())return;
   try{
     const url=new URL(SHARED_DATABASE_API_URL);
-    url.searchParams.set('action','loadPlatformState');if(SHARED_DATABASE_API_TOKEN)url.searchParams.set('token',SHARED_DATABASE_API_TOKEN);url.searchParams.set('role',PORTAL_MODE);url.searchParams.set('_',Date.now());
+    url.searchParams.set('action','loadPlatformState');url.searchParams.set('token',SHARED_DATABASE_API_TOKEN);url.searchParams.set('role',PORTAL_MODE);url.searchParams.set('_',Date.now());
     const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('Database bersama tidak dapat dibaca.');
     const json=await res.json();if(json.success===false)throw new Error(json.message||'Load database gagal.');
     if(json.state)state=migrateState(json.state);
